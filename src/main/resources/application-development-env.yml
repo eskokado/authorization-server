@@ -2,6 +2,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
+        issuer: http://algashop-authorization-server:8081
         client:
           algashop-test-client:
             registration:
@@ -14,9 +15,13 @@ spring:
               scopes:
                 - products:read
                 - products:write
+                - products:stock:write
+                - categories:read
+                - categories:write
             token:
               access-token-time-to-live: 15m
-              access-token-format: reference # Opaco
+              access-token-format: self-contained # JWT
+              # access-token-format: reference # Opaco
           algashop-ordering-service-client:
             registration:
               client-id: algashop-ordering-service
