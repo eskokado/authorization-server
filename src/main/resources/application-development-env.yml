@@ -1,4 +1,16 @@
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authorization_server
+    username: postgres
+    password: postgres
+  jpa:
+    show-sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,classpath:db/testdata
+    user: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/authorization_server
   security:
     user:
       name: customer@gmail.com
@@ -56,10 +68,12 @@ spring:
               client-name: AlgaShop Ecommerce
               authorization-grant-types:
                 - authorization_code
+                - refresh_token
               client-authentication-methods:
                 - client_secret_basic
               redirect-uris:
                 - http://algashop-ecommerce:9080/login/oauth2/code/algashop-ecommerce-web
+                - https://oauth.pstmn.io/v1/callback
               scopes:
                 - credit-cards:read
                 - credit-cards:write
@@ -74,6 +88,8 @@ spring:
             token:
               access-token-time-to-live: 5m
               authorization-code-time-to-live: 10m
+              refresh-token-time-to-live: 1h
+              reuse-refresh-tokens: false
           algashop-ecommerce-m2m-client:
             registration:
               client-id: algashop-ecommerce-m2m
