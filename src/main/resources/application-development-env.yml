@@ -12,9 +12,6 @@ spring:
     password: postgres
     url: jdbc:postgresql://localhost:5432/authorization_server
   security:
-    user:
-      name: customer@gmail.com
-      password: 123456
     oauth2:
       authorizationserver:
         issuer: http://algashop-authorization-server:8081
@@ -83,6 +80,7 @@ spring:
                 - customers:write
                 - shopping-carts:read
                 - shopping-carts:write
+                - openid
             require-authorization-consent: true
             require-proof-key: false #PKCE
             token:
