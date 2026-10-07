@@ -1,4 +1,4 @@
-package com.eskcti.algashop.authorization_server.config;
+package com.eskcti.algashop.authorization_server.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,11 +8,10 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 
 @Configuration
-public class PersistenceConfig {
+public class OAuth2PersistenceConfig {
 
 	@Bean
-	public JdbcOAuth2AuthorizationService authorizationService(
-			JdbcTemplate jdbcTemplate,
+	public JdbcOAuth2AuthorizationService authorizationService(JdbcTemplate jdbcTemplate,
 			RegisteredClientRepository registeredClientRepository) {
 		return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
 	}
