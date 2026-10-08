@@ -1,4 +1,4 @@
-package com.eskcti.algashop.authorization_server.infrastructure.security;
+package com.eskcti.algashop.authorization_server.infrastructure.security.oidc;
 
 import com.eskcti.algashop.authorization_server.domain.model.AuthUser;
 import com.eskcti.algashop.authorization_server.domain.model.AuthUserRepository;

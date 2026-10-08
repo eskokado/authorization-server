@@ -1,4 +1,4 @@
-package com.eskcti.algashop.authorization_server.infrastructure.security;
+package com.eskcti.algashop.authorization_server.infrastructure.security.oidc;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
