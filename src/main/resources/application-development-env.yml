@@ -1,4 +1,6 @@
 spring:
+  session:
+    store-type: jdbc
   datasource:
     url: jdbc:postgresql://localhost:5432/authorization_server
     username: postgres
