@@ -67,4 +67,20 @@ class OidcUserInfoMapperTest {
 		assertThatThrownBy(() -> mapper.apply(context))
 				.isInstanceOf(IllegalArgumentException.class);
 	}
+
+	@Test
+	void apply_throwsWhenPrincipalTokenIsNull() {
+		OidcUserInfoAuthenticationContext context = mock(OidcUserInfoAuthenticationContext.class);
+		OAuth2Authorization authorization = mock(OAuth2Authorization.class);
+		Authentication authentication = mock(Authentication.class);
+		JwtAuthenticationToken principal = mock(JwtAuthenticationToken.class);
+		when(context.getAuthorization()).thenReturn(authorization);
+		when(authorization.getToken(OidcIdToken.class)).thenReturn(null);
+		when(context.getAuthentication()).thenReturn(authentication);
+		when(authentication.getPrincipal()).thenReturn(principal);
+		when(principal.getToken()).thenReturn(null);
+
+		assertThatThrownBy(() -> mapper.apply(context))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
 }

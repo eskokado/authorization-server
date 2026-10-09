@@ -27,6 +27,14 @@ class AuthUserTest {
 	}
 
 	@Test
+	void brandNew_rejectsBlankEmail() {
+		assertThatThrownBy(() -> AuthUser.brandNew("  ", "Alice", AuthUserType.MANAGER, "hash"))
+				.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(() -> AuthUser.brandNew(null, "Alice", AuthUserType.MANAGER, "hash"))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
 	void brandNew_generatesDifferentIdsForEachUser() {
 		AuthUser first = AuthUser.brandNew("a@x.com", "A", AuthUserType.CUSTOMER, "h1");
 		AuthUser second = AuthUser.brandNew("b@x.com", "B", AuthUserType.CUSTOMER, "h2");
