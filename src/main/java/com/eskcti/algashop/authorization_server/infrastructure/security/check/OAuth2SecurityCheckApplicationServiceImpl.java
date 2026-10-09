@@ -24,7 +24,7 @@ public class OAuth2SecurityCheckApplicationServiceImpl
 
 		try {
 			return UUID.fromString(jwt.getSubject());
-		} catch (IllegalAccessError e) {
+		} catch (IllegalArgumentException e) {
 			log.error("Invalid user ID in JWT subject: {}", jwt.getSubject(), e);
 			throw new AccessDeniedException("Invalid user ID in JWT subject");
 		}
