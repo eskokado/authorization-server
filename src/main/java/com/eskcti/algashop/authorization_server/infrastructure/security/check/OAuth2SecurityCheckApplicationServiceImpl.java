@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service("securityCheck")
@@ -49,7 +50,8 @@ public class OAuth2SecurityCheckApplicationServiceImpl
 			log.debug(e.getMessage(), e);
 			return false;
 		}
-		return jwt.getAudience().contains(jwt.getSubject());
+		List<String> audience = jwt.getAudience();
+		return audience != null && audience.contains(jwt.getSubject());
 	}
 
 	@Override

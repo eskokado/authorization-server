@@ -87,6 +87,18 @@ class OAuth2SecurityCheckApplicationServiceImplTest {
 	}
 
 	@Test
+	void isMachineAuthenticated_falseWhenAudienceIsMissing() {
+		UUID userId = UUID.randomUUID();
+		Jwt jwt = Jwt.withTokenValue("token")
+				.header("alg", "none")
+				.subject(userId.toString())
+				.build();
+		authorize(jwt);
+
+		assertThat(service.isMachineAuthenticated()).isFalse();
+	}
+
+	@Test
 	void isMachineAuthenticated_falseWhenNoAuthentication() {
 		assertThat(service.isMachineAuthenticated()).isFalse();
 	}
