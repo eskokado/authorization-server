@@ -55,6 +55,8 @@ spring:
                 - shopping-carts:read
                 - shopping-carts:write
                 - shipping-costs:preview
+                - users:read
+                - users:write
             token:
               access-token-time-to-live: 15m
               access-token-format: self-contained # JWT
@@ -88,6 +90,13 @@ spring:
               post-logout-redirect-uris:
                 - http://algashop-ecommerce:9080?logout-success
               scopes:
+                - products:read
+                - products:write
+                - products:stock:write
+                - categories:read
+                - categories:write
+                - invoices:read
+                - invoices:write
                 - credit-cards:read
                 - credit-cards:write
                 - orders:read
@@ -96,6 +105,9 @@ spring:
                 - customers:write
                 - shopping-carts:read
                 - shopping-carts:write
+                - shipping-costs:preview
+                - users:read
+                - users:write
                 - openid
             require-authorization-consent: true
             require-proof-key: false #PKCE
