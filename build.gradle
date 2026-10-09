@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.8'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.eskcti.algashop'
@@ -35,9 +36,58 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.assertj:assertj-core:3.27.3'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+def jacocoCoverageExcludes = [
+	'**/AuthorizationServerApplication.class',
+	'**/AuthorizationServerApplicationTests.class',
+	'**/DomainException.class',
+	'**/SpringDataAuditingConfig.class',
+	'**/ApiExceptionHandler.class',
+	'**/AuthorizationServerSecurityConfig.class',
+	'**/HttpSessionConfig.class',
+	'**/PasswordEncoderConfig.class',
+	'**/OAuth2PersistenceConfig.class',
+	'**/OAuth2TokenCustomizerConfig.class',
+	'**/OidcLogoutSuccessHandlerConfig.class'
+]
+
+jacocoTestReport {
+	dependsOn test
+	executionData test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: jacocoCoverageExcludes)
+		}))
+	}
+}
+
+jacocoTestCoverageVerification {
+	dependsOn test
+	executionData test
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.90
+			}
+		}
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: jacocoCoverageExcludes)
+		}))
+	}
+}
+
+check.dependsOn jacocoTestCoverageVerification
