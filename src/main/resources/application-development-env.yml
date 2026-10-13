@@ -131,6 +131,12 @@ spring:
             token:
               access-token-time-to-live: 15m
 
+algashop:
+  security:
+    cors:
+      allowedOrigins:
+        - http://algashop-admin:4200
+
 logging:
   level:
     org.springframework.security: TRACE
