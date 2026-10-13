@@ -167,6 +167,12 @@ algashop:
     cors:
       allowedOrigins:
         - http://admin.algashop.local:4200
+    cookie:
+      secure: false # true = https
+      sameSite: Lax #None, Lax, Strict
+      domainName: algashop.local
+    csp:
+      policyDirectives: frame-ancestors 'self' http://admin.algashop.local:4200 http://auth.algashop.local:8081
 
 logging:
   level:
