@@ -28,7 +28,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer: http://algashop-authorization-server:8081
+        issuer: http://auth.algashop.local:8081
         client:
           algashop-test-client:
             registration:
@@ -76,7 +76,7 @@ spring:
               access-token-format: self-contained # JWT
           algashop-ecommerce-web-client:
             registration:
-              client-id: algashop-ecommerce-web
+              client-id: algashop.local
               client-secret: "{noop}ecommerce123"
               client-name: AlgaShop Ecommerce
               authorization-grant-types:
@@ -85,10 +85,10 @@ spring:
               client-authentication-methods:
                 - client_secret_basic
               redirect-uris:
-                - http://algashop-ecommerce:9080/login/oauth2/code/algashop-ecommerce-web
+                - http://algashop.local:9080/login/oauth2/code/algashop.local
                 - https://oauth.pstmn.io/v1/callback
               post-logout-redirect-uris:
-                - http://algashop-ecommerce:9080?logout-success
+                - http://algashop.local:9080?logout-success
               scopes:
                 - products:read
                 - products:write
@@ -139,10 +139,10 @@ spring:
               client-authentication-methods:
                 - none # Client público sem autenticação
               redirect-uris:
-                - http://algashop-admin:4200
-                - http://algashop-admin:4200/silent-refresh.html
+                - http://admin.algashop.local:4200
+                - http://auth.algashop.local:4200/silent-refresh.html
               post-logout-redirect-uris:
-                - http://algashop-admin:4200
+                - http://auth.algashop.local:4200
               scopes:
                 - products:read
                 - products:write
@@ -166,7 +166,7 @@ algashop:
   security:
     cors:
       allowedOrigins:
-        - http://algashop-admin:4200
+        - http://admin.algashop.local:4200
 
 logging:
   level:
