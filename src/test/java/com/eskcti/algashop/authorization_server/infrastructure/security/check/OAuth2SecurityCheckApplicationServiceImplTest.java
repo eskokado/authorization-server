@@ -5,10 +5,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -131,9 +133,77 @@ class OAuth2SecurityCheckApplicationServiceImplTest {
 		assertThat(service.canAccessOwnProfile()).isFalse();
 	}
 
+	@Test
+	void canRegisterUserOfType_falseWithoutAuthentication() {
+		assertThat(service.canRegisterUserOfType(AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canRegisterUserOfType_falseWithoutUsersWriteScope() {
+		authorize(machineJwt("algashop-ordering-service"), "SCOPE_users:read");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canRegisterUserOfType_trueForMachineCreatingCustomer() {
+		authorize(machineJwt("algashop-ecommerce-web"), "SCOPE_users:write");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.CUSTOMER)).isTrue();
+	}
+
+	@Test
+	void canRegisterUserOfType_falseForMachineCreatingManager() {
+		authorize(machineJwt("algashop-ecommerce-web"), "SCOPE_users:write");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.MANAGER)).isFalse();
+	}
+
+	@Test
+	void canRegisterUserOfType_falseForHumanCreatingCustomer() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canRegisterUserOfType_trueForManagerCreatingManager() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write", "ROLE_MANAGER");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.MANAGER)).isTrue();
+	}
+
+	@Test
+	void canRegisterUserOfType_trueForManagerCreatingOperator() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write", "ROLE_MANAGER");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.OPERATOR)).isTrue();
+	}
+
+	@Test
+	void canRegisterUserOfType_falseForManagerCreatingCustomer() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write", "ROLE_MANAGER");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canRegisterUserOfType_falseForHumanWithoutManagerRole() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write");
+
+		assertThat(service.canRegisterUserOfType(AuthUserType.OPERATOR)).isFalse();
+	}
+
 	private void authorize(Jwt jwt) {
+		authorize(jwt, "SCOPE_users:read");
+	}
+
+	private void authorize(Jwt jwt, String... authorities) {
+		List<GrantedAuthority> grantedAuthorities = Arrays.stream(authorities)
+				.map(authority -> (GrantedAuthority) () -> authority)
+				.toList();
 		SecurityContextHolder.getContext().setAuthentication(
-				new JwtAuthenticationToken(jwt, List.of(() -> "SCOPE_users:read")));
+				new JwtAuthenticationToken(jwt, grantedAuthorities));
 	}
 
 	private Jwt userJwt(String subject, String... audience) {
