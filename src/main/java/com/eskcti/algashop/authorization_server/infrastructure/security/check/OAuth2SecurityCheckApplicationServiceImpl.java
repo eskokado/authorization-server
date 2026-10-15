@@ -86,6 +86,46 @@ public class OAuth2SecurityCheckApplicationServiceImpl
 		return false;
 	}
 
+	@Override
+	public boolean canEditUser(AuthUserType editType, UUID editUserId) {
+		if (isMachineAuthenticated()) {
+			return false;
+		}
+
+		try {
+			if (getAuthenticatedUserId().equals(editUserId)) {
+				return true;
+			}
+		} catch (AccessDeniedException e) {
+			return false;
+		}
+
+		if (hasAuthority(ROLE_MANAGER)) {
+			return editType == AuthUserType.MANAGER || editType == AuthUserType.OPERATOR;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean canChangeUserType(AuthUserType currentType, AuthUserType newType) {
+		if (currentType == newType) {
+			return true;
+		}
+
+		if (hasAuthority(ROLE_MANAGER)) {
+			if (currentType == AuthUserType.MANAGER && newType == AuthUserType.OPERATOR) {
+				return true;
+			}
+
+			if (currentType == AuthUserType.OPERATOR && newType == AuthUserType.MANAGER) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean hasAuthority(String rawAuthority) {
 		Authentication authentication;
 		try {
