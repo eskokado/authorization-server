@@ -1,5 +1,6 @@
 package com.eskcti.algashop.authorization_server.application.user.management;
 
+import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserNotFoundException;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserOutput;
 import com.eskcti.algashop.authorization_server.domain.model.DomainException;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -34,15 +36,34 @@ class AuthUserManagementApplicationServiceTest {
 	@Mock
 	private PasswordEncoder passwordEncoder;
 
+	@Mock
+	private SecurityCheckApplicationService securityCheck;
+
 	private AuthUserManagementApplicationService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new AuthUserManagementApplicationService(authUserRepository, passwordEncoder);
+		service = new AuthUserManagementApplicationService(authUserRepository, passwordEncoder, securityCheck);
+	}
+
+	@Test
+	void create_throwsWhenSecurityCheckDeniesRegistration() {
+		when(securityCheck.canRegisterUserOfType(AuthUserType.MANAGER)).thenReturn(false);
+
+		assertThatThrownBy(() -> service.create(AuthUserInput.builder()
+				.name("Alice")
+				.email("alice@algashop.com")
+				.type(AuthUserType.MANAGER)
+				.build()))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verify(authUserRepository, never()).save(any());
+		verify(passwordEncoder, never()).encode(anyString());
 	}
 
 	@Test
 	void create_persistsUserWithEncodedTemporaryPassword() {
+		when(securityCheck.canRegisterUserOfType(AuthUserType.MANAGER)).thenReturn(true);
 		when(authUserRepository.existsByEmail("alice@algashop.com")).thenReturn(false);
 		when(passwordEncoder.encode(anyString())).thenReturn("encoded-hash");
 		when(authUserRepository.save(any(AuthUser.class)))
@@ -70,6 +91,7 @@ class AuthUserManagementApplicationServiceTest {
 
 	@Test
 	void create_rejectsDuplicatedEmail() {
+		when(securityCheck.canRegisterUserOfType(AuthUserType.MANAGER)).thenReturn(true);
 		when(authUserRepository.existsByEmail("alice@algashop.com")).thenReturn(true);
 
 		assertThatThrownBy(() -> service.create(AuthUserInput.builder()
@@ -91,6 +113,8 @@ class AuthUserManagementApplicationServiceTest {
 		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
 		when(authUserRepository.save(any(AuthUser.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
+		when(securityCheck.canEditUser(AuthUserType.MANAGER, existing.getId())).thenReturn(true);
+		when(securityCheck.canChangeUserType(AuthUserType.MANAGER, AuthUserType.OPERATOR)).thenReturn(true);
 
 		AuthUserOutput output = service.update(userId, AuthUserUpdateInput.builder()
 				.name("Alice Updated")
@@ -123,6 +147,8 @@ class AuthUserManagementApplicationServiceTest {
 		UUID userId = UUID.randomUUID();
 		AuthUser customer = AuthUser.brandNew("bob@algashop.com", "Bob", AuthUserType.CUSTOMER, "hash");
 		when(authUserRepository.findById(userId)).thenReturn(Optional.of(customer));
+		when(securityCheck.canEditUser(AuthUserType.CUSTOMER, customer.getId())).thenReturn(true);
+		when(securityCheck.canChangeUserType(AuthUserType.CUSTOMER, AuthUserType.MANAGER)).thenReturn(true);
 
 		assertThatThrownBy(() -> service.update(userId, AuthUserUpdateInput.builder()
 				.name("Bob")
@@ -130,6 +156,41 @@ class AuthUserManagementApplicationServiceTest {
 				.enabled(true)
 				.build()))
 				.isInstanceOf(DomainException.class);
+	}
+
+	@Test
+	void update_throwsWhenSecurityCheckDeniesEditing() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.canEditUser(AuthUserType.MANAGER, existing.getId())).thenReturn(false);
+
+		assertThatThrownBy(() -> service.update(userId, AuthUserUpdateInput.builder()
+				.name("Alice Updated")
+				.type(AuthUserType.OPERATOR)
+				.enabled(true)
+				.build()))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verify(authUserRepository, never()).save(any());
+	}
+
+	@Test
+	void update_throwsWhenSecurityCheckDeniesTypeChange() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.canEditUser(AuthUserType.MANAGER, existing.getId())).thenReturn(true);
+		when(securityCheck.canChangeUserType(AuthUserType.MANAGER, AuthUserType.OPERATOR)).thenReturn(false);
+
+		assertThatThrownBy(() -> service.update(userId, AuthUserUpdateInput.builder()
+				.name("Alice Updated")
+				.type(AuthUserType.OPERATOR)
+				.enabled(true)
+				.build()))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verify(authUserRepository, never()).save(any());
 	}
 
 	@Test

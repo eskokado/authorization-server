@@ -194,6 +194,107 @@ class OAuth2SecurityCheckApplicationServiceImplTest {
 		assertThat(service.canRegisterUserOfType(AuthUserType.OPERATOR)).isFalse();
 	}
 
+	@Test
+	void canEditUser_falseForMachineClient() {
+		authorize(machineJwt("algashop-ecommerce-web"));
+
+		assertThat(service.canEditUser(AuthUserType.CUSTOMER, UUID.randomUUID())).isFalse();
+	}
+
+	@Test
+	void canEditUser_trueWhenUserEditsOwnProfile() {
+		UUID userId = UUID.randomUUID();
+		authorize(userJwt(userId.toString()));
+
+		assertThat(service.canEditUser(AuthUserType.CUSTOMER, userId)).isTrue();
+	}
+
+	@Test
+	void canEditUser_falseWhenSubjectIsNotAValidUuid() {
+		authorize(userJwt("not-a-uuid"));
+
+		assertThat(service.canEditUser(AuthUserType.CUSTOMER, UUID.randomUUID())).isFalse();
+	}
+
+	@Test
+	void canEditUser_trueForManagerEditingManager() {
+		UUID targetUserId = UUID.randomUUID();
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canEditUser(AuthUserType.MANAGER, targetUserId)).isTrue();
+	}
+
+	@Test
+	void canEditUser_trueForManagerEditingOperator() {
+		UUID targetUserId = UUID.randomUUID();
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canEditUser(AuthUserType.OPERATOR, targetUserId)).isTrue();
+	}
+
+	@Test
+	void canEditUser_falseForManagerEditingCustomer() {
+		UUID targetUserId = UUID.randomUUID();
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canEditUser(AuthUserType.CUSTOMER, targetUserId)).isFalse();
+	}
+
+	@Test
+	void canEditUser_falseForNonManagerEditingAnotherUser() {
+		UUID targetUserId = UUID.randomUUID();
+		authorize(userJwt(UUID.randomUUID().toString()));
+
+		assertThat(service.canEditUser(AuthUserType.CUSTOMER, targetUserId)).isFalse();
+	}
+
+	@Test
+	void canChangeUserType_trueWhenTypeIsUnchanged() {
+		authorize(userJwt(UUID.randomUUID().toString()));
+
+		assertThat(service.canChangeUserType(AuthUserType.CUSTOMER, AuthUserType.CUSTOMER)).isTrue();
+	}
+
+	@Test
+	void canChangeUserType_trueForManagerPromotingOperator() {
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canChangeUserType(AuthUserType.OPERATOR, AuthUserType.MANAGER)).isTrue();
+	}
+
+	@Test
+	void canChangeUserType_trueForManagerDemotingManager() {
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canChangeUserType(AuthUserType.MANAGER, AuthUserType.OPERATOR)).isTrue();
+	}
+
+	@Test
+	void canChangeUserType_falseForManagerChangingToCustomer() {
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canChangeUserType(AuthUserType.MANAGER, AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canChangeUserType_falseForManagerChangingOperatorToCustomer() {
+		authorize(userJwt(UUID.randomUUID().toString()), "ROLE_MANAGER");
+
+		assertThat(service.canChangeUserType(AuthUserType.OPERATOR, AuthUserType.CUSTOMER)).isFalse();
+	}
+
+	@Test
+	void canChangeUserType_falseForNonManagerChangingType() {
+		authorize(userJwt(UUID.randomUUID().toString()));
+
+		assertThat(service.canChangeUserType(AuthUserType.CUSTOMER, AuthUserType.OPERATOR)).isFalse();
+	}
+
+	@Test
+	void canChangeUserType_falseWithoutAuthentication() {
+		assertThat(service.canChangeUserType(AuthUserType.CUSTOMER, AuthUserType.OPERATOR)).isFalse();
+	}
+
 	private void authorize(Jwt jwt) {
 		authorize(jwt, "SCOPE_users:read");
 	}
