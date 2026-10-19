@@ -95,30 +95,6 @@ INSERT INTO
         last_modified_date
     )
 VALUES (
-        '6e148bd5-47f6-4022-b9da-07cfaa294f7a',
-        'john.doe@email.com',
-        '{noop}123456',
-        'John Doe',
-        0,
-        'CUSTOMER',
-        true,
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
-    );
-
-INSERT INTO
-    auth_user (
-        id,
-        email,
-        password,
-        name,
-        version,
-        "type",
-        enabled,
-        created_at,
-        last_modified_date
-    )
-VALUES (
         'f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1',
         'sophia.anderson@email.com',
         '{noop}123456',
