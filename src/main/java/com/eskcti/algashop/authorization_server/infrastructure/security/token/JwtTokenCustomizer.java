@@ -34,8 +34,10 @@ public class JwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingCont
 
 	private void customizeAccessToken(JwtEncodingContext context) {
 		OidcUserInfo oidcUserInfo = loadUser(context);
+		String role = oidcUserInfo.getClaimAsString("type");
+
 		context.getClaims().subject(oidcUserInfo.getSubject());
-		context.getClaims().claim("role", oidcUserInfo.getClaimAsString("type"));
+		context.getClaims().claim("role", role);
 	}
 
 	private void customizeIdToken(JwtEncodingContext context) {
