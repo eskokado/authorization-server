@@ -195,6 +195,13 @@ class OAuth2SecurityCheckApplicationServiceImplTest {
 	}
 
 	@Test
+	void canRegisterUserOfType_falseForManagerRegisteringUnknownType() {
+		authorize(userJwt(UUID.randomUUID().toString()), "SCOPE_users:write", "ROLE_MANAGER");
+
+		assertThat(service.canRegisterUserOfType(null)).isFalse();
+	}
+
+	@Test
 	void canEditUser_falseForMachineClient() {
 		authorize(machineJwt("algashop-ecommerce-web"));
 
