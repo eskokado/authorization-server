@@ -50,8 +50,8 @@ public class AuthorizationServerSecurityConfig {
 								.logoutEndpoint(logout -> logout.logoutResponseHandler(oidcLogoutAuthenticationSuccessHandler))
 								.userInfoEndpoint(
 										userInfo -> userInfo.userInfoMapper(oidcUserInfoMapper)))
-						.authorizationEndpoint(
-								endpoint -> endpoint.authenticationProviders(this::customizeAuthenticationProviders)))
+						.authorizationEndpoint(endpoint -> endpoint.authenticationProviders(this::customizeAuthenticationProviders)
+								.consentPage("/oauth2/consent")))
 				.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
 				.exceptionHandling(
 						exceptions -> exceptions.defaultAuthenticationEntryPointFor(
@@ -87,8 +87,14 @@ public class AuthorizationServerSecurityConfig {
 	@Bean
 	@Order(3)
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) {
-		http.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-				.formLogin(Customizer.withDefaults());
+		http.authorizeHttpRequests(authorize -> authorize
+				.requestMatchers("/login", "/forgot-password", "/css/**",
+						"/js/**", "/img/**", "/favicon.ico")
+				.permitAll()
+				.anyRequest().authenticated())
+				.formLogin(c -> c.loginPage("/login")
+						.defaultSuccessUrl(properties.getDefaultRedirectUri())
+						.permitAll());
 		return http.build();
 	}
 
