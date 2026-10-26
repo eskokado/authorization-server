@@ -10,13 +10,14 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.UUID;
 
+import static com.eskcti.algashop.authorization_server.support.AuthUserFixtures.newUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthUserOutputTest {
 
 	@Test
 	void from_mapsAllUserFields() {
-		AuthUser user = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
 
 		AuthUserOutput output = AuthUserOutput.from(user);
 

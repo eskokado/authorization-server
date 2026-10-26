@@ -23,7 +23,8 @@ INSERT INTO
         "type",
         enabled,
         created_at,
-        last_modified_date
+        last_modified_date, 
+        email_verified
     )
 VALUES (
         '019d7764-3b02-7fd5-b0e7-c47c58592857',
@@ -34,7 +35,8 @@ VALUES (
         'CUSTOMER',
         true,
         CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
+        CURRENT_TIMESTAMP,
+        true
     );
 
 INSERT INTO
@@ -47,7 +49,8 @@ INSERT INTO
         "type",
         enabled,
         created_at,
-        last_modified_date
+        last_modified_date, 
+        email_verified
     )
 VALUES (
         '019d7764-3b02-7be2-9112-039fda30e965',
@@ -58,7 +61,8 @@ VALUES (
         'MANAGER',
         true,
         CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
+        CURRENT_TIMESTAMP,
+        true
     );
 
 INSERT INTO
@@ -71,7 +75,8 @@ INSERT INTO
         "type",
         enabled,
         created_at,
-        last_modified_date
+        last_modified_date, 
+        email_verified
     )
 VALUES (
         '019d7764-3b02-70d3-8caf-8d2f02a4b4c2',
@@ -82,7 +87,8 @@ VALUES (
         'OPERATOR',
         true,
         CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
+        CURRENT_TIMESTAMP,
+        true
     );
 
 INSERT INTO
@@ -95,7 +101,8 @@ INSERT INTO
         "type",
         enabled,
         created_at,
-        last_modified_date
+        last_modified_date, 
+        email_verified
     )
 VALUES (
         'f6a7b8c9-d0e1-f2a3-b4c5-d6e7f8a9b0c1',
@@ -106,7 +113,8 @@ VALUES (
         'CUSTOMER',
         true,
         CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
+        CURRENT_TIMESTAMP, 
+        true
     );
 
 INSERT INTO auth_user_type_client_scope (auth_user_type, client_id, scope) 

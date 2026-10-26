@@ -164,6 +164,10 @@ spring:
               authorization-code-time-to-live: 2m
 
 algashop:
+  user-account:
+    token:
+      activation-ttl: PT24H
+      password-reset-ttl: PT2H
   security:
     defaultRedirectUri: http://algashop.local:9080
     cors:

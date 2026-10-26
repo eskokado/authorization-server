@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.eskcti.algashop.authorization_server.support.AuthUserFixtures.newUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -171,7 +172,7 @@ class AuthUserClientAccessPolicyValidatorTest {
 	}
 
 	private AuthUser user(AuthUserType type) {
-		return AuthUser.brandNew(EMAIL, "Alice", type, "hash");
+		return newUser(EMAIL, "Alice", type);
 	}
 
 }

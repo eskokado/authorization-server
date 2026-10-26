@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.eskcti.algashop.authorization_server.support.AuthUserFixtures.newUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,7 +90,7 @@ class AuthUserQueryServiceImplTest {
 	@Test
 	void findById_returnsMappedOutput() {
 		UUID userId = UUID.randomUUID();
-		AuthUser user = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
 		when(authUserRepository.findById(userId)).thenReturn(Optional.of(user));
 
 		AuthUserOutput output = service.findById(userId);

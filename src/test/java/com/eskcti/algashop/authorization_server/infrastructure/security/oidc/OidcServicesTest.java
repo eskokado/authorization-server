@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.eskcti.algashop.authorization_server.support.AuthUserFixtures.newUser;
+import static com.eskcti.algashop.authorization_server.support.AuthUserFixtures.verified;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +47,7 @@ class OidcUserInfoServiceTest {
 
 	@Test
 	void loadUser_buildsUserInfoFromAggregate() {
-		AuthUser user = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
 		setCreatedAt(user, OffsetDateTime.parse("2026-01-01T10:00:00Z"));
 		when(authUserRepository.findByEmail("alice@algashop.com")).thenReturn(Optional.of(user));
 
@@ -90,7 +92,7 @@ class AuthUserDetailServiceTest {
 
 	@Test
 	void loadUserByUsername_returnsEnabledUserDetails() {
-		AuthUser user = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		AuthUser user = verified(newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER));
 		when(authUserRepository.findByEmail("alice@algashop.com")).thenReturn(Optional.of(user));
 
 		var details = service.loadUserByUsername("alice@algashop.com");
@@ -102,7 +104,7 @@ class AuthUserDetailServiceTest {
 
 	@Test
 	void loadUserByUsername_marksDisabledUser() {
-		AuthUser user = AuthUser.brandNew("alice@algashop.com", "Alice", AuthUserType.MANAGER, "hash");
+		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
 		user.setEnabled(false);
 		when(authUserRepository.findByEmail("alice@algashop.com")).thenReturn(Optional.of(user));
 
