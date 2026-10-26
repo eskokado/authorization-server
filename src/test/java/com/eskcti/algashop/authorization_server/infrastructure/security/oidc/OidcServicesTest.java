@@ -103,6 +103,16 @@ class AuthUserDetailServiceTest {
 	}
 
 	@Test
+	void loadUserByUsername_marksUnverifiedEmailAsDisabled() {
+		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
+		when(authUserRepository.findByEmail("alice@algashop.com")).thenReturn(Optional.of(user));
+
+		var details = service.loadUserByUsername("alice@algashop.com");
+
+		assertThat(details.isEnabled()).isFalse();
+	}
+
+	@Test
 	void loadUserByUsername_marksDisabledUser() {
 		AuthUser user = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
 		user.setEnabled(false);
