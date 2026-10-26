@@ -45,6 +45,29 @@ class AuthUserTest {
 	}
 
 	@Test
+	void brandNew_rejectsBlankEncryptedPassword() {
+		AuthUserPasswordManager blankPasswordManager = new AuthUserPasswordManager() {
+			@Override
+			public String generates() {
+				return "plain-password";
+			}
+
+			@Override
+			public String encrypt(String plainPassword) {
+				return "  ";
+			}
+
+			@Override
+			public boolean matches(String encryptedPassword, String plainPassword) {
+				return false;
+			}
+		};
+
+		assertThatThrownBy(() -> AuthUser.brandNew("a@x.com", "A", AuthUserType.CUSTOMER, blankPasswordManager))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
 	void generateVerificationToken_returnsPlainTokenAndStoresHashWithExpiration() {
 		AuthUser user = newCustomer();
 		Duration expiresIn = Duration.ofHours(24);
