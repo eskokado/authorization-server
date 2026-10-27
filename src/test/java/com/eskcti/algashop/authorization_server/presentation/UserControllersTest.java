@@ -4,6 +4,7 @@ import com.eskcti.algashop.authorization_server.application.security.SecurityChe
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserManagementApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserInput;
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserUpdateInput;
+import com.eskcti.algashop.authorization_server.application.user.management.PasswordManagementApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserFilter;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserOutput;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserQueryService;
@@ -101,6 +102,9 @@ class MyUserControllerTest {
 	@Mock
 	private AuthUserQueryService queryService;
 
+	@Mock
+	private PasswordManagementApplicationService passwordManagementApplicationService;
+
 	@InjectMocks
 	private MyUserController controller;
 
@@ -112,5 +116,15 @@ class MyUserControllerTest {
 		when(queryService.findById(userId)).thenReturn(output);
 
 		assertThat(controller.getMe()).isSameAs(output);
+	}
+
+	@Test
+	void requestPasswordChange_delegatesToPasswordManagementService() {
+		UUID userId = UUID.randomUUID();
+		when(securityCheck.getAuthenticatedUserId()).thenReturn(userId);
+
+		controller.requestPasswordChange();
+
+		verify(passwordManagementApplicationService).requestPasswordChange(userId);
 	}
 }

@@ -2,6 +2,7 @@ package com.eskcti.algashop.authorization_server.application.user.management;
 
 import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.UserAccountProperties;
+import com.eskcti.algashop.authorization_server.application.user.mail.AuthUserMailSender;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserNotFoundException;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserOutput;
 import com.eskcti.algashop.authorization_server.domain.model.DomainException;
@@ -47,6 +48,9 @@ class AuthUserManagementApplicationServiceTest {
 	@Mock
 	private SecurityCheckApplicationService securityCheck;
 
+	@Mock
+	private AuthUserMailSender authUserMailSender;
+
 	private AuthUserManagementApplicationService service;
 
 	@BeforeEach
@@ -58,7 +62,8 @@ class AuthUserManagementApplicationServiceTest {
 		userAccountProperties.setToken(token);
 
 		service = new AuthUserManagementApplicationService(
-				authUserRepository, securityCheck, userAccountProperties, passwordManager, tokenHasher);
+				authUserRepository, securityCheck, userAccountProperties, passwordManager, tokenHasher,
+				authUserMailSender);
 	}
 
 	@Test
@@ -111,6 +116,7 @@ class AuthUserManagementApplicationServiceTest {
 		assertThat(output.getId()).isEqualTo(saved.getId());
 		assertThat(output.getEmail()).isEqualTo("alice@algashop.com");
 		assertThat(output.isEnabled()).isTrue();
+		verify(authUserMailSender).sendActivationEmail(saved, "plain-token");
 	}
 
 	@Test

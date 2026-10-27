@@ -99,6 +99,71 @@ class AuthUserTest {
 	}
 
 	@Test
+	void changePasswordWithToken_updatesPasswordClearsTokenAndVerifiesEmail() {
+		AuthUser user = newCustomer();
+		VerificationTokenHasher hasher = tokenHasher();
+		user.generateVerificationToken(Duration.ofHours(2), hasher);
+
+		user.changePasswordWithToken("plain-token", "new-password", passwordManager("encoded-new"), hasher);
+
+		assertThat(user.getPassword()).isEqualTo("encoded-new");
+		assertThat(user.isEmailVerified()).isTrue();
+		assertThat(user.getVerificationToken()).isNull();
+		assertThat(user.getVerificationTokenExpirationDate()).isNull();
+	}
+
+	@Test
+	void changePasswordWithToken_keepsEmailVerifiedWhenAlreadyVerified() {
+		AuthUser user = verified(newCustomer());
+		VerificationTokenHasher hasher = tokenHasher();
+		user.generateVerificationToken(Duration.ofHours(2), hasher);
+
+		user.changePasswordWithToken("plain-token", "new-password", passwordManager("encoded-new"), hasher);
+
+		assertThat(user.isEmailVerified()).isTrue();
+		assertThat(user.getPassword()).isEqualTo("encoded-new");
+	}
+
+	@Test
+	void changePasswordWithToken_rejectsInvalidToken() {
+		AuthUser user = newCustomer();
+		VerificationTokenHasher hasher = tokenHasher();
+		user.generateVerificationToken(Duration.ofHours(2), hasher);
+
+		assertThatThrownBy(() -> user.changePasswordWithToken(
+				"wrong-token", "new-password", passwordManager("encoded-new"), hasher))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Invalid token");
+		assertThat(user.getPassword()).isEqualTo(ENCRYPTED_PASSWORD);
+	}
+
+	@Test
+	void changePasswordWithToken_rejectsExpiredToken() {
+		AuthUser user = newCustomer();
+		VerificationTokenHasher hasher = tokenHasher();
+		user.generateVerificationToken(Duration.ofHours(-1), hasher);
+
+		assertThatThrownBy(() -> user.changePasswordWithToken(
+				"plain-token", "new-password", passwordManager("encoded-new"), hasher))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Token has expired");
+		assertThat(user.getPassword()).isEqualTo(ENCRYPTED_PASSWORD);
+	}
+
+	@Test
+	void changePasswordWithToken_rejectsTokenWithoutExpiration() {
+		AuthUser user = newCustomer();
+		VerificationTokenHasher hasher = tokenHasher();
+		user.generateVerificationToken(Duration.ofHours(2), hasher);
+		setField(user, "verificationTokenExpirationDate", null);
+
+		assertThatThrownBy(() -> user.changePasswordWithToken(
+				"plain-token", "new-password", passwordManager("encoded-new"), hasher))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Token has expired");
+	}
+
+	@Test
 	void isDisabled_returnsTrueWhenEmailIsNotVerified() {
 		AuthUser user = newCustomer();
 
@@ -198,11 +263,53 @@ class AuthUserTest {
 		return newUser("alice@algashop.com", "Alice", AuthUserType.CUSTOMER);
 	}
 
+	private VerificationTokenHasher tokenHasher() {
+		return new VerificationTokenHasher() {
+			@Override
+			public String generate() {
+				return "plain-token";
+			}
+
+			@Override
+			public String hash(String plainToken) {
+				return "hashed-" + plainToken;
+			}
+
+			@Override
+			public boolean isEqual(String hashed, String plainToken) {
+				return hashed != null && hashed.equals(hash(plainToken));
+			}
+		};
+	}
+
+	private AuthUserPasswordManager passwordManager(String encryptedPassword) {
+		return new AuthUserPasswordManager() {
+			@Override
+			public String generates() {
+				return "temp-password";
+			}
+
+			@Override
+			public String encrypt(String plainPassword) {
+				return encryptedPassword;
+			}
+
+			@Override
+			public boolean matches(String encrypted, String plainPassword) {
+				return encrypted.equals(encryptedPassword);
+			}
+		};
+	}
+
 	private void setId(AuthUser user, UUID id) {
+		setField(user, "id", id);
+	}
+
+	private void setField(AuthUser user, String name, Object value) {
 		try {
-			var field = AuthUser.class.getDeclaredField("id");
+			var field = AuthUser.class.getDeclaredField(name);
 			field.setAccessible(true);
-			field.set(user, id);
+			field.set(user, value);
 		} catch (ReflectiveOperationException e) {
 			throw new IllegalStateException(e);
 		}
