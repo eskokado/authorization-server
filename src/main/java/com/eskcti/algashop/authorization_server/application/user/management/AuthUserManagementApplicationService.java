@@ -2,6 +2,7 @@ package com.eskcti.algashop.authorization_server.application.user.management;
 
 import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.UserAccountProperties;
+import com.eskcti.algashop.authorization_server.application.user.mail.AuthUserMailSender;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserNotFoundException;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserOutput;
 import com.eskcti.algashop.authorization_server.domain.model.user.AuthUser;
@@ -27,6 +28,8 @@ public class AuthUserManagementApplicationService {
 	private final AuthUserPasswordManager passwordManager;
 	private final VerificationTokenHasher tokenHasher;
 
+	private final AuthUserMailSender authUserMailSender;
+
 	public AuthUserOutput create(AuthUserInput input) {
 		if (!securityCheck.canRegisterUserOfType(input.getType())) {
 			throw new AccessDeniedException("Cannot register user of type " + input.getType());
@@ -45,8 +48,7 @@ public class AuthUserManagementApplicationService {
 		String plainToken = user.generateVerificationToken(userAccountProperties.getToken().getActivationTtl(),
 				tokenHasher);
 
-		// TODO send via email
-		System.out.println("PlainToken: " + plainToken);
+		authUserMailSender.sendActivationEmail(user, plainToken);
 
 		return AuthUserOutput.from(authUserRepository.save(user));
 	}
