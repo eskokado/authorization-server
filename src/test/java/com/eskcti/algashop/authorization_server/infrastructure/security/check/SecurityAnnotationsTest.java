@@ -18,7 +18,8 @@ class SecurityAnnotationsTest {
 				.getAnnotation(PreAuthorize.class);
 
 		assertThat(preAuthorize).isNotNull();
-		assertThat(preAuthorize.value()).isEqualTo("hasAuthority('SCOPE_users:read')");
+		assertThat(preAuthorize.value())
+				.isEqualTo("hasAuthority('SCOPE_users:read') and not hasRole('CUSTOMER')");
 	}
 
 	@Test
@@ -27,7 +28,8 @@ class SecurityAnnotationsTest {
 				.getAnnotation(PreAuthorize.class);
 
 		assertThat(preAuthorize).isNotNull();
-		assertThat(preAuthorize.value()).isEqualTo("hasAuthority('SCOPE_users:write')");
+		assertThat(preAuthorize.value())
+				.isEqualTo("hasAuthority('SCOPE_users:write') and not hasRole('CUSTOMER')");
 	}
 
 	@Test
@@ -36,6 +38,16 @@ class SecurityAnnotationsTest {
 				.getAnnotation(PreAuthorize.class);
 
 		assertThat(preAuthorize).isNotNull();
-		assertThat(preAuthorize.value()).isEqualTo("@securityCheck.canAccessOwnProfile()");
+		assertThat(preAuthorize.value()).isEqualTo("@securityChecks.canAccessOwnProfile()");
+	}
+
+	@Test
+	void canDeleteOwnProfile_declaresCustomerSecurityCheckExpression() {
+		PreAuthorize preAuthorize = SecurityAnnotations.CanDeleteOwnProfile.class
+				.getAnnotation(PreAuthorize.class);
+
+		assertThat(preAuthorize).isNotNull();
+		assertThat(preAuthorize.value())
+				.isEqualTo("@securityChecks.canAccessOwnProfile() and hasRole('CUSTOMER')");
 	}
 }

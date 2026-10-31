@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OAuth2SecurityCheckApplicationServiceImplTest {
 
-	private final OAuth2SecurityCheckApplicationServiceImpl service =
-			new OAuth2SecurityCheckApplicationServiceImpl();
+	private final OAuth2SecurityChecksImpl service = new OAuth2SecurityChecksImpl();
 
 	@AfterEach
 	void clearContext() {

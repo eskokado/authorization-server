@@ -1,6 +1,6 @@
 package com.eskcti.algashop.authorization_server.application.user.management;
 
-import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
+import com.eskcti.algashop.authorization_server.application.security.SecurityChecks;
 import com.eskcti.algashop.authorization_server.application.user.UserAccountProperties;
 import com.eskcti.algashop.authorization_server.application.user.mail.AuthUserMailSender;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserNotFoundException;
@@ -46,7 +46,7 @@ class AuthUserManagementApplicationServiceTest {
 	private VerificationTokenHasher tokenHasher;
 
 	@Mock
-	private SecurityCheckApplicationService securityCheck;
+	private SecurityChecks securityCheck;
 
 	@Mock
 	private AuthUserMailSender authUserMailSender;
@@ -237,6 +237,76 @@ class AuthUserManagementApplicationServiceTest {
 		verify(authUserRepository).save(captor.capture());
 		assertThat(captor.getValue().getName()).isEqualTo("Anonymized User");
 		assertThat(captor.getValue().isEnabled()).isFalse();
+	}
+
+	@Test
+	void delete_deniesManagerDeletingOwnProfile() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = newUser("alice@algashop.com", "Alice", AuthUserType.MANAGER);
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.getAuthenticatedUserId()).thenReturn(existing.getId());
+
+		assertThatThrownBy(() -> service.delete(userId))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verify(authUserRepository, never()).save(any());
+	}
+
+	@Test
+	void delete_allowsCustomerDeletingOwnProfile() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = newUser("bob@algashop.com", "Bob", AuthUserType.CUSTOMER);
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.getAuthenticatedUserId()).thenReturn(existing.getId());
+		when(authUserRepository.save(any(AuthUser.class)))
+				.thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.delete(userId);
+
+		verify(authUserRepository).save(existing);
+	}
+
+	@Test
+	void updateOwnProfile_appliesNewName() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = newUser("bob@algashop.com", "Bob", AuthUserType.CUSTOMER);
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.canEditUser(AuthUserType.CUSTOMER, existing.getId())).thenReturn(true);
+		when(authUserRepository.save(any(AuthUser.class)))
+				.thenAnswer(invocation -> invocation.getArgument(0));
+
+		AuthUserOutput output = service.update(userId, MyUserUpdateInput.builder()
+				.name("Bob Updated")
+				.build());
+
+		assertThat(output.getName()).isEqualTo("Bob Updated");
+		verify(authUserRepository).save(existing);
+	}
+
+	@Test
+	void updateOwnProfile_throwsWhenSecurityCheckDeniesEditing() {
+		UUID userId = UUID.randomUUID();
+		AuthUser existing = newUser("bob@algashop.com", "Bob", AuthUserType.CUSTOMER);
+		when(authUserRepository.findById(userId)).thenReturn(Optional.of(existing));
+		when(securityCheck.canEditUser(AuthUserType.CUSTOMER, existing.getId())).thenReturn(false);
+
+		assertThatThrownBy(() -> service.update(userId, MyUserUpdateInput.builder()
+				.name("Bob Updated")
+				.build()))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verify(authUserRepository, never()).save(any());
+	}
+
+	@Test
+	void updateOwnProfile_throwsWhenUserDoesNotExist() {
+		UUID userId = UUID.randomUUID();
+		when(authUserRepository.findById(userId)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.update(userId, MyUserUpdateInput.builder()
+				.name("Ghost")
+				.build()))
+				.isInstanceOf(AuthUserNotFoundException.class);
 	}
 
 	@Test

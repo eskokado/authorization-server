@@ -1,9 +1,10 @@
 package com.eskcti.algashop.authorization_server.presentation;
 
-import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
+import com.eskcti.algashop.authorization_server.application.security.SecurityChecks;
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserManagementApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserInput;
 import com.eskcti.algashop.authorization_server.application.user.management.AuthUserUpdateInput;
+import com.eskcti.algashop.authorization_server.application.user.management.MyUserUpdateInput;
 import com.eskcti.algashop.authorization_server.application.user.management.PasswordManagementApplicationService;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserFilter;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserOutput;
@@ -97,10 +98,13 @@ class UserControllerTest {
 class MyUserControllerTest {
 
 	@Mock
-	private SecurityCheckApplicationService securityCheck;
+	private SecurityChecks securityCheck;
 
 	@Mock
 	private AuthUserQueryService queryService;
+
+	@Mock
+	private AuthUserManagementApplicationService managementService;
 
 	@Mock
 	private PasswordManagementApplicationService passwordManagementApplicationService;
@@ -116,6 +120,27 @@ class MyUserControllerTest {
 		when(queryService.findById(userId)).thenReturn(output);
 
 		assertThat(controller.getMe()).isSameAs(output);
+	}
+
+	@Test
+	void updateMe_delegatesToManagementService() {
+		UUID userId = UUID.randomUUID();
+		MyUserUpdateInput input = MyUserUpdateInput.builder().name("Alice Updated").build();
+		AuthUserOutput output = AuthUserOutput.builder().id(userId).name("Alice Updated").build();
+		when(securityCheck.getAuthenticatedUserId()).thenReturn(userId);
+		when(managementService.update(userId, input)).thenReturn(output);
+
+		assertThat(controller.updateMe(input)).isSameAs(output);
+	}
+
+	@Test
+	void deleteMe_delegatesToManagementService() {
+		UUID userId = UUID.randomUUID();
+		when(securityCheck.getAuthenticatedUserId()).thenReturn(userId);
+
+		controller.deleteMe();
+
+		verify(managementService).delete(userId);
 	}
 
 	@Test
