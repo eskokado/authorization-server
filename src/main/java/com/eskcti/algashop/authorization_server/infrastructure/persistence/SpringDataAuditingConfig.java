@@ -1,6 +1,6 @@
 package com.eskcti.algashop.authorization_server.infrastructure.persistence;
 
-import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
+import com.eskcti.algashop.authorization_server.application.security.SecurityChecks;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
@@ -13,24 +13,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Configuration
-@EnableJpaAuditing(
-        dateTimeProviderRef = "auditingDateTimeProvider",
-        auditorAwareRef = "auditorProvider"
-)
+@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider", auditorAwareRef = "auditorProvider")
 public class SpringDataAuditingConfig {
 
     @Bean
     public DateTimeProvider auditingDateTimeProvider() {
-        return ()-> Optional.of(OffsetDateTime.now().truncatedTo(ChronoUnit.MILLIS));
+        return () -> Optional.of(OffsetDateTime.now().truncatedTo(ChronoUnit.MILLIS));
     }
 
     @Bean
-    public AuditorAware<UUID> auditorProvider(SecurityCheckApplicationService securityCheck) {
+    public AuditorAware<UUID> auditorProvider(SecurityChecks securityCheck) {
         return () -> {
             if (!securityCheck.isAuthenticated() || securityCheck.isMachineAuthenticated()) {
                 return Optional.empty();
             }
-	        return Optional.of(securityCheck.getAuthenticatedUserId());
+            return Optional.of(securityCheck.getAuthenticatedUserId());
         };
     }
 }

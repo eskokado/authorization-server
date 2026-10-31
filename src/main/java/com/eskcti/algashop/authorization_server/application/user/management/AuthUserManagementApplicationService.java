@@ -1,6 +1,6 @@
 package com.eskcti.algashop.authorization_server.application.user.management;
 
-import com.eskcti.algashop.authorization_server.application.security.SecurityCheckApplicationService;
+import com.eskcti.algashop.authorization_server.application.security.SecurityChecks;
 import com.eskcti.algashop.authorization_server.application.user.UserAccountProperties;
 import com.eskcti.algashop.authorization_server.application.user.mail.AuthUserMailSender;
 import com.eskcti.algashop.authorization_server.application.user.query.AuthUserNotFoundException;
@@ -8,6 +8,7 @@ import com.eskcti.algashop.authorization_server.application.user.query.AuthUserO
 import com.eskcti.algashop.authorization_server.domain.model.user.AuthUser;
 import com.eskcti.algashop.authorization_server.domain.model.user.AuthUserPasswordManager;
 import com.eskcti.algashop.authorization_server.domain.model.user.AuthUserRepository;
+import com.eskcti.algashop.authorization_server.domain.model.user.AuthUserType;
 import com.eskcti.algashop.authorization_server.domain.model.user.VerificationTokenHasher;
 
 import jakarta.transaction.Transactional;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class AuthUserManagementApplicationService {
 
 	private final AuthUserRepository authUserRepository;
-	private final SecurityCheckApplicationService securityCheck;
+	private final SecurityChecks securityCheck;
 	private final UserAccountProperties userAccountProperties;
 	private final AuthUserPasswordManager passwordManager;
 	private final VerificationTokenHasher tokenHasher;
@@ -66,6 +67,19 @@ public class AuthUserManagementApplicationService {
 		return AuthUserOutput.from(authUserRepository.save(user));
 	}
 
+	public AuthUserOutput update(UUID userId, MyUserUpdateInput input) {
+		AuthUser user = authUserRepository.findById(userId)
+				.orElseThrow(() -> new AuthUserNotFoundException(userId));
+
+		if (!securityCheck.canEditUser(user.getType(), user.getId())) {
+			throw new AccessDeniedException("Cannot edit user");
+		}
+
+		user.setName(input.getName());
+
+		return AuthUserOutput.from(authUserRepository.save(user));
+	}
+
 	private void verifyCanEditUser(AuthUser authUser, AuthUserUpdateInput input) {
 		if (!securityCheck.canEditUser(authUser.getType(), authUser.getId())) {
 			throw new AccessDeniedException("Cannot edit user of type " + authUser.getType());
@@ -79,7 +93,17 @@ public class AuthUserManagementApplicationService {
 	public void delete(UUID userId) {
 		AuthUser user = authUserRepository.findById(userId)
 				.orElseThrow(() -> new AuthUserNotFoundException(userId));
+
+		verifyCanArchiveOwnUser(user);
+
 		user.anonymize();
 		authUserRepository.save(user);
+	}
+
+	private void verifyCanArchiveOwnUser(AuthUser user) {
+		if (user.getId().equals(securityCheck.getAuthenticatedUserId()) &&
+				user.getType() != AuthUserType.CUSTOMER) {
+			throw new AccessDeniedException("Only CUSTOMER users can delete their own profile");
+		}
 	}
 }

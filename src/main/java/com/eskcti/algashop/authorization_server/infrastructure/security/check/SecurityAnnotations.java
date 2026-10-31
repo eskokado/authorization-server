@@ -9,19 +9,28 @@ import java.lang.annotation.Target;
 
 public class SecurityAnnotations {
 
-	@Target({ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
-	@PreAuthorize("hasAuthority('SCOPE_users:read')")
-	public @interface CanReadUsers {}
+	@PreAuthorize("hasAuthority('SCOPE_users:read') and not hasRole('CUSTOMER')")
+	public @interface CanReadUsers {
+	}
 
-	@Target({ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
-	@PreAuthorize("hasAuthority('SCOPE_users:write')")
-	public @interface CanWriteUsers {}
+	@PreAuthorize("hasAuthority('SCOPE_users:write') and not hasRole('CUSTOMER')")
+	public @interface CanWriteUsers {
+	}
 
-	@Target({ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
-	@PreAuthorize("@securityCheck.canAccessOwnProfile()")
-	public @interface CanAccessOwnProfile {}
+	@PreAuthorize("@securityChecks.canAccessOwnProfile()")
+	public @interface CanAccessOwnProfile {
+	}
+
+	@Target({ ElementType.METHOD, ElementType.TYPE })
+	@Retention(RetentionPolicy.RUNTIME)
+	@PreAuthorize("@securityChecks.canAccessOwnProfile() and hasRole('CUSTOMER')")
+	public @interface CanDeleteOwnProfile {
+	}
 
 }
