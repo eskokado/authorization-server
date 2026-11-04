@@ -14,6 +14,10 @@ java {
 	}
 }
 
+ext {
+	set('springCloudAwsVersion', "4.0.0")
+}
+
 repositories {
 	mavenCentral()
 }
@@ -30,6 +34,9 @@ dependencies {
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.apache.commons:commons-lang3:3.20.0'
 	implementation 'com.fasterxml.uuid:java-uuid-generator:5.2.0'
+	implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
