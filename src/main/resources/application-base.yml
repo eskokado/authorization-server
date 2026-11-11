@@ -9,6 +9,11 @@ spring:
   flyway:
     enabled: false
     locations: classpath:db/migration
+  cloud:
+    discovery:
+      client:
+        composite-indicator:
+          enabled: false
 
 management:
   info:
