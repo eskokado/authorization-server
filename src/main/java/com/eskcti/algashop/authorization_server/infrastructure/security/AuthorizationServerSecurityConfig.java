@@ -54,7 +54,9 @@ public class AuthorizationServerSecurityConfig {
 										userInfo -> userInfo.userInfoMapper(oidcUserInfoMapper)))
 						.authorizationEndpoint(endpoint -> endpoint.authenticationProviders(this::customizeAuthenticationProviders)
 								.consentPage("/oauth2/consent")))
-				.authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+				.authorizeHttpRequests(authorize -> authorize
+						.requestMatchers("/actuator/health", "/actuator/info/**").permitAll()
+						.anyRequest().authenticated())
 				.exceptionHandling(
 						exceptions -> exceptions.defaultAuthenticationEntryPointFor(
 								new LoginUrlAuthenticationEntryPoint("/login"),
