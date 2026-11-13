@@ -67,6 +67,7 @@ tasks.named('test') {
 
 bootJar {
 	archiveFileName = 'authorization-server.jar'
+  exclude '.opencode/**', '.agents/**'
 }
 
 tasks.register('dockerBuild', Exec) {
