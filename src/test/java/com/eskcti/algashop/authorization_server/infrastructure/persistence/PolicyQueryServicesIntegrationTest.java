@@ -3,6 +3,7 @@ package com.eskcti.algashop.authorization_server.infrastructure.persistence;
 import com.eskcti.algashop.authorization_server.domain.model.user.AuthUserType;
 import com.eskcti.algashop.authorization_server.infrastructure.security.query.AuthUserClientScopesQueryService;
 import com.eskcti.algashop.authorization_server.infrastructure.security.query.ClientAllowedQueryService;
+import com.eskcti.algashop.authorization_server.utils.AbstractAuthServerIT;
 import com.eskcti.algashop.authorization_server.utils.TestcontainerPostgreSQLConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Import(TestcontainerPostgreSQLConfig.class)
-class PolicyQueryServicesIntegrationTest {
+class PolicyQueryServicesIntegrationTest extends AbstractAuthServerIT {
 
 	@Autowired
 	private ClientAllowedQueryService clientAllowedQueryService;
